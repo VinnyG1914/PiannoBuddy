@@ -342,6 +342,7 @@
     cur.sel = sel;
     rememberLast();
     renderParts();
+    layoutStage();
     var chip = $("partChips").children[sel < 0 ? cur.model.parts.length : sel];
     if (chip && chip.scrollIntoView) chip.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
     renderCoach();
@@ -421,9 +422,23 @@
     var m = cur.model, lo = m.lo, hi = m.hi;
     if (cur.free) { lo = cur.map.lowLo; hi = W >= 1000 ? cur.map.top : cur.map.lowHi; }
     var dLo, dHi;
-    if (W >= 1000) { dLo = Math.min(lo, cur.map.lowLo); dHi = Math.max(hi, hi > cur.map.lowHi ? Math.min(cur.map.top, hi + 4) : cur.map.lowHi); }
-    else if (W >= 620) { dLo = lo - 3; dHi = hi + 3; }
-    else { dLo = lo - 1; dHi = hi + 1; }
+    var phone = isPhone(W);
+    if (phone) {
+      // phones: only the keys this part needs, so every key is big enough for a finger
+      if (cur.free) { dLo = cur.base; dHi = cur.base + 12; }
+      else {
+        var pr = partRange(cur.sel);
+        dLo = pr.lo; dHi = pr.hi;
+        if (isBlack(dLo)) dLo--;
+        if (isBlack(dHi)) dHi++;
+        var side = 0;
+        while (whiteCount(dLo, dHi) < 7) {
+          if (side++ % 2) { dHi++; while (isBlack(dHi)) dHi++; } else { dLo--; while (isBlack(dLo)) dLo--; }
+        }
+      }
+    }
+    else if (W >= 1000) { dLo = Math.min(lo, cur.map.lowLo); dHi = Math.max(hi, hi > cur.map.lowHi ? Math.min(cur.map.top, hi + 4) : cur.map.lowHi); }
+    else { dLo = lo - 3; dHi = hi + 3; }
     if (isBlack(dLo)) dLo--;
     if (isBlack(dHi)) dHi++;
     cur.dispLo = dLo; cur.dispHi = dHi;
@@ -433,6 +448,7 @@
     keyGeo = {};
     pianoEl.innerHTML = "";
     cur.keys = {};
+    targetMidi = null;
     var wi = 0;
     for (var midi = dLo; midi <= dHi; midi++) {
       var black = isBlack(midi), x, w;
@@ -457,6 +473,18 @@
     sizeCanvas(fall, $("fallCanvas"));
     sizeCanvas(sheet, $("sheetCanvas"));
   }
+  function isPhone(W) { return W < 620 || (touchOnly && window.innerHeight < 520); }
+  function whiteCount(a, b) { var n = 0; for (var k = a; k <= b; k++) if (!isBlack(k)) n++; return n; }
+  function partRange(sel) {
+    var r = selRange(sel), lo = 999, hi = -1;
+    cur.model.notes.forEach(function (n) {
+      if (n.t < r.start - 1e-6 || n.t >= r.end - 1e-6) return;
+      lo = Math.min(lo, n.midi); hi = Math.max(hi, n.midi);
+    });
+    if (hi < 0) { lo = cur.model.lo; hi = cur.model.hi; }
+    return { lo: lo, hi: hi };
+  }
+  function setPlaying(on) { $("songView").classList.toggle("playing", !!on); setTimeout(function () { if (cur.song) layoutStage(); }, 30); }
   function sizeCanvas(o, cv) {
     o.cv = cv; o.ctx = cv.getContext("2d");
     var r = cv.parentNode.getBoundingClientRect();
@@ -603,6 +631,7 @@
     };
     settings.speed[cur.mode] = Math.round(run.speed * 100); saveSettings();
     $("idleCard").classList.add("hidden");
+    if (!$("songView").classList.contains("playing")) setPlaying(true);
     $("startIco").textContent = "❚❚"; $("startLabel").textContent = "Pause";
     $("hudMode").textContent = { listen: "👂 LISTEN", practice: "🐢 PRACTICE", play: "🎯 PLAY" }[run.mode] + " · " + (cur.sel < 0 ? "Whole song" : "Part " + (cur.sel + 1));
     updateHud();
@@ -618,6 +647,7 @@
   function stopRun(silent) {
     if (run) { run.running = false; PBAudio.allOff(); }
     run = null;
+    if ($("songView").classList.contains("playing")) setPlaying(false);
     $("startIco").textContent = "▶"; $("startLabel").textContent = "Start";
     $("hint").classList.add("hidden");
     showCount("");
@@ -832,6 +862,7 @@
       run = null; return;
     }
     run = null;
+    setPlaying(false);
     $("startIco").textContent = "▶"; $("startLabel").textContent = "Start";
     PBAudio.chime(res.stars >= 2 || r.mode === "listen");
     showResults(r, res);
