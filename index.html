@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#121228">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PianoBuddy">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<title>PianoBuddy</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="brand" id="homeBtn" title="Song library">
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 40 40"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b6cff"/><stop offset="1" stop-color="#2ec4ff"/></linearGradient></defs><rect x="2" y="2" width="36" height="36" rx="10" fill="url(#lg)"/><g fill="#fff"><rect x="8" y="10" width="6" height="20" rx="1.5"/><rect x="17" y="10" width="6" height="20" rx="1.5"/><rect x="26" y="10" width="6" height="20" rx="1.5"/></g><g fill="#1b1640"><rect x="12" y="10" width="4" height="12" rx="1"/><rect x="24" y="10" width="4" height="12" rx="1"/></g></svg>
+      </span>
+      <span class="brand-text">Piano<b>Buddy</b></span>
+    </button>
+    <div class="topbar-title" id="topTitle"></div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="helpBtn" title="How to play (H)"><span>?</span></button>
+      <button class="icon-btn" id="settingsBtn" title="Settings">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Zm7.43-2.53a7.8 7.8 0 0 0 0-1.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.68-.97l-.36-2.54A.5.5 0 0 0 14.14 2h-3.84a.5.5 0 0 0-.49.42l-.36 2.54c-.6.24-1.17.57-1.68.97l-2.39-.96a.5.5 0 0 0-.6.22L2.86 8.51a.5.5 0 0 0 .12.64l2.03 1.58a7.8 7.8 0 0 0 0 1.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.51.4 1.08.73 1.68.97l.36 2.54c.04.24.25.42.49.42h3.84c.25 0 .45-.18.49-.42l.36-2.54c.6-.24 1.17-.57 1.68-.97l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- LIBRARY -->
+  <main id="libraryView" class="view">
+    <section class="hero">
+      <div>
+        <h1>What shall we learn today?</h1>
+        <p class="muted">Pick a song, listen to a part, practise it slowly, then play it for stars. Your computer keyboard is the piano.</p>
+      </div>
+      <div class="hero-actions">
+        <label class="search">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 4a6 6 0 1 0 3.87 10.59l4.27 4.27 1.41-1.41-4.27-4.27A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg>
+          <input id="searchInput" type="search" placeholder="Search songs…" autocomplete="off">
+        </label>
+        <button class="btn ghost" id="importBtn" title="Import a .mid file">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 4h2v8.17l3.59-3.58L18 10l-6 6-6-6 1.41-1.41L11 12.17V4ZM5 18h14v2H5v-2Z"/></svg>
+          Import MIDI
+        </button>
+        <input type="file" id="midiFile" accept=".mid,.midi,audio/midi,audio/x-midi" hidden>
+      </div>
+    </section>
+    <div class="chips" id="filterChips">
+      <button class="chip active" data-filter="all">All songs</button>
+      <button class="chip" data-filter="balkan">Balkan</button>
+      <button class="chip" data-filter="world">World classics</button>
+      <button class="chip" data-filter="mine">My imports</button>
+    </div>
+    <div class="grid" id="songGrid"></div>
+    <p class="footnote muted">Piano sound: Salamander Grand Piano by Alexander Holm (CC BY 3.0).</p>
+  </main>
+
+  <!-- SONG -->
+  <main id="songView" class="view hidden">
+    <section class="song-head">
+      <div class="song-id">
+        <div class="song-flag" id="songFlag"></div>
+        <div>
+          <h2 id="songTitle"></h2>
+          <div class="muted small" id="songMeta"></div>
+        </div>
+      </div>
+      <div class="coach" id="coach"></div>
+    </section>
+
+    <section class="controls">
+      <div class="parts" id="partChips"></div>
+      <div class="control-row">
+        <div class="seg" id="modeSeg" role="tablist">
+          <button data-mode="listen" title="The app plays it for you"><span class="seg-ico">👂</span><span>Listen</span></button>
+          <button data-mode="practice" title="Waits for you at every note"><span class="seg-ico">🐢</span><span>Practice</span></button>
+          <button data-mode="play" title="Real time, scored"><span class="seg-ico">🎯</span><span>Play</span></button>
+        </div>
+        <div class="speed">
+          <span class="speed-label">Speed</span>
+          <input type="range" id="speedRange" min="30" max="120" step="5" value="60">
+          <span class="speed-val" id="speedVal">60%</span>
+        </div>
+        <div class="toggles">
+          <button class="tog" id="viewTog" title="Falling notes / sheet music / both">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 5h18v2H3V5Zm0 4h18v2H3V9Zm2 4h3v7H5v-7Zm5 2h3v5h-3v-5Zm5-2h3v7h-3v-7Z"/></svg>
+            <span id="viewTogLabel">Both</span>
+          </button>
+          <button class="tog" id="metroTog" title="Metronome">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 2h4l4.5 19h-13L10 2Zm1.5 2-1.1 4.7 6.4-2.9-.4-1.8h-4.9Zm-1.6 6.9L8 19h8l-.9-3.8-6.1-2.6 6.9-3.1-.4-1.6-5.6 2.5Z"/></svg>
+          </button>
+          <button class="tog" id="loopTog" title="Loop this part">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 7h10v3l4-4-4-4v3H5v6h2V7Zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4Z"/></svg>
+          </button>
+        </div>
+        <button class="btn primary big" id="startBtn"><span id="startIco">▶</span> <span id="startLabel">Start</span></button>
+      </div>
+    </section>
+
+    <section class="stage" id="stage">
+      <div class="sheet-wrap" id="sheetWrap"><canvas id="sheetCanvas"></canvas></div>
+      <div class="fall-wrap" id="fallWrap">
+        <canvas id="fallCanvas"></canvas>
+        <div class="hud">
+          <div class="hud-left"><span class="pill" id="hudMode"></span></div>
+          <div class="hud-progress"><div id="hudBar"></div></div>
+          <div class="hud-right" id="hudStats"></div>
+        </div>
+        <div class="hint hidden" id="hint"></div>
+      </div>
+      <div class="piano-wrap" id="pianoWrap"><div class="piano" id="piano"></div></div>
+      <div class="countdown hidden" id="countdown"></div>
+      <div class="idle-card" id="idleCard"></div>
+    </section>
+  </main>
+</div>
+
+<!-- modal host -->
+<div class="modal-back hidden" id="modalBack"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="toasts" id="toasts"></div>
+<div class="rotate-tip hidden" id="rotateTip">Tip: turn your phone sideways for bigger keys</div>
+
+<script src="js/songs.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/midi.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
